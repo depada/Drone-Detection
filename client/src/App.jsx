@@ -9,7 +9,7 @@ const App = () => {
     <div>
       <Header />
       <Input />
-      <Output />
+      {/* <Output /> */}
     </div>
   );
 };
