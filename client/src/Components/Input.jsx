@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 
 const DetectionTable = ({ detectionResult }) => {
@@ -97,14 +97,36 @@ const Input = () => {
   };
 
   useEffect(() => {
-    if (!!containerRef && !divDimesions) {
+    if (!!containerRef && !!divDimesions) {
       setDivDimensions(containerRef?.current?.getBoundingClientRect());
       const dividents = getRespectiveSizesDivident(
         divDimesions.width,
-        divDimesions.height
+        divDimesions.height,
+        300,
+        200
       );
+      setDividents(dividents);
     }
-  }, [containerRef]);
+  }, [containerRef, divDimesions]);
+
+  const positioning = useMemo(() => {
+    const [predection] = detectionResult?.predictions || [];
+    if (predection) {
+      const topVal =
+        (predection.y - predection.height / 2) / dividents.yDivident;
+      const leftVal =
+        (predection.x - predection.width / 2) / dividents.xDivident;
+      const widthVal = predection.width / dividents.xDivident;
+      const heightVal = predection.height / dividents.yDivident;
+      return {
+        top: `${topVal}px`,
+        left: `${leftVal}px`,
+        width: `${widthVal}px`,
+        height: `${heightVal}px`,
+      };
+    }
+    return {};
+  }, [dividents, detectionResult]);
 
   return (
     <Fragment>
@@ -127,42 +149,32 @@ const Input = () => {
       </div>
       {loading && <p>Loading...</p>}
       {imagePreview && (
-        <div
-          ref={containerRef}
-          style={{ position: "relative", width: "fit-content" }}
-        >
-          <img
-            src={imagePreview}
-            alt="Image Preview"
-            style={imagePreviewStyle}
-            onLoad={() => setLoading(false)}
-          />
-          {detectionResult?.predictions?.length > 0 && (
-            <div
-              ref={elementRef}
-              style={{
-                top: `${
-                  (detectionResult.predictions[0].y -
-                    detectionResult.predictions[0].height / 2) /
-                  dividents.yDivident
-                }px`,
-                left: `${
-                  (detectionResult.predictions[0].x -
-                    detectionResult.predictions[0].width / 2) /
-                  dividents.xDivident
-                }px`,
-                width: `${
-                  detectionResult.predictions[0].width / dividents.xDivident
-                }px`,
-                height: `${
-                  detectionResult.predictions[0].height / dividents.yDivident
-                }px`,
-                ...elementStyle,
-              }}
-            >
-              <div style={elementText}>{"Some text here"}</div>
-            </div>
-          )}
+        <div style={{ height: 200, width: 300 }}>
+          <div
+            ref={containerRef}
+            style={{ position: "relative", width: "fit-content" }}
+          >
+            <img
+              src={imagePreview}
+              alt="Image Preview"
+              style={imagePreviewStyle}
+              onLoad={() => setLoading(false)}
+            />
+            {detectionResult?.predictions?.length > 0 && (
+              <div
+                ref={elementRef}
+                style={{
+                  ...positioning,
+                  ...elementStyle,
+                }}
+              >
+                <div style={elementText}>
+                  {(detectionResult.predictions[0].confidence * 100).toFixed(2)}{" "}
+                  % Accuracy
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
       {detectionResult && detectionResult.predictions.length > 0 ? (
@@ -246,8 +258,8 @@ const tableCellStyle = {
 };
 
 const elementStyle = {
-  backgroundColor: "black",
-  opacity: 0.5,
+  backgroundColor: "rgba(0,0,0,0.35)",
+  // opacity: 0.5,
   border: "3px solid lightgreen",
   position: "absolute",
 };
