@@ -9,7 +9,7 @@ const DetectionTable = ({ detectionResult }) => {
   const predictions = detectionResult.predictions;
 
   return (
-    <div style={{ marginTop: "20px" }}>
+    <div style={{ marginTop: "20px", position: "absolute" }}>
       <h2>Detection Results</h2>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
@@ -178,9 +178,7 @@ const Input = () => {
         </div>
       )}
       {detectionResult && detectionResult.predictions.length > 0 ? (
-        <div>
-          <DetectionTable detectionResult={detectionResult} />
-        </div>
+        <DetectionTable detectionResult={detectionResult} />
       ) : (
         <p style={noDroneFoundStyle}></p>
       )}
